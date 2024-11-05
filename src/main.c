@@ -1,13 +1,15 @@
 #include "../ElfParser/inc_pub/elfparser_header.h"
 #include "../ElfParser/inc_pub/elfparser_secthead.h"
+#include "../ElfParser/inc_pub/elfparser_strtable.h"
 #include "../FileHandler/inc_pub/filehandler.h"
 #include <stdio.h>
 
 int main (int argc, char **argv)
 {
-    source_file_t file;
-    elfparser_header_t elf_header;
-    elfparser_secthead_t elf_sect_head;
+    source_file_t file = {0};
+    elfparser_header_t elf_header = {0};
+    elfparser_secthead_t elf_sect_head = {0};
+
     int ret;
 
     if (argc != 2)
@@ -69,12 +71,23 @@ int main (int argc, char **argv)
     {
         printf("Problem section header parsing, With err: %d\n", ret);
     }
-    printf("------------------------------------\n");
+    ret = FileHandler_mapGet(&file, (elf_sect_head.table)[elf_sect_head.string_table_idx].sh_size, (elf_sect_head.table)[elf_sect_head.string_table_idx].sh_offset);
+    if (ret)
+    {
+        printf("Problem with getting a map, Withh err: %d\n", ret);
+    }
+    ret = ElfParser_SectHead_nameResolve(&elf_sect_head, file.map,  file.map_len);
+    if (ret)
+    {
+        printf("Problem section header name resolving, With err: %d\n", ret);
+    }
+    printf("---------------------------!--------\n");
+    printf("idx|size|off|name\n");
     for (int i = 0; i < elf_sect_head.table_len; i++)
     {
-        printf("%d|%lX|%lX|%d|%x\n", i, (elf_sect_head.table)[i].sh_size, (elf_sect_head.table)[i].sh_offset, (elf_sect_head.table)[i].sh_type, (elf_sect_head.table)[i].sh_name_idx);
+        printf("%d|%lX|%lX|%s\n", i, (elf_sect_head.table)[i].sh_size, (elf_sect_head.table)[i].sh_offset, (elf_sect_head.table)[i].sh_name);
     }
 
-    free(elf_sect_head.table);
+    ElfParser_SectHead_free(&elf_sect_head);
     FileHandler_fileClose(&file);
 }
