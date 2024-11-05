@@ -20,6 +20,7 @@ int FileHandler_structSetup(source_file_t *file)
     file->map_len = 0;
     file->page_offest = 0;
     file->page_size = 0;
+    return(0);
 }
 
 int FileHandler_mapFree(source_file_t *file)
@@ -87,7 +88,7 @@ int FileHandler_mapGet(source_file_t *file, size_t length, off_t offset)
     {
         return(-3);
     }
-    if (offset >= file->size) {
+    if ((size_t)offset >= file->size) {
         return(-1);
     }
     if (length == 0)
