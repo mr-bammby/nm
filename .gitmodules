@@ -1,0 +1,3 @@
+[submodule "ElfParser"]
+	path = ElfParser
+	url = https://github.com/mr-bammby/ElfParser.git
