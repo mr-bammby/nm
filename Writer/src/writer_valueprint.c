@@ -7,14 +7,14 @@
 #define UNDEF_VALUE "                "
 #define ZEROS       "0000000000000000"
 
-static int8_t valueprint_ulltoa_hex(uint64_t num, char** ret_str)
+static int8_t valueprint_ulltoa_hex(uint64_t num, char* ret_str[MAX_LEN + 1])
 {
     char base[] = "0123456789abcdef";
     uint8_t base_size = 16;
     uint64_t factor = 1;
     int8_t num_len = 0;
-    short max_len = 16;
-    *ret_str[max_len] * '\0';
+    short max_len = MAX_LEN;
+    (*ret_str)[max_len] = '\0';
     int8_t next_num;
 
     do{
@@ -34,6 +34,7 @@ static int8_t valueprint_ulltoa_hex(uint64_t num, char** ret_str)
 int Writer_ValuePrint_print(uint16_t value, uint8_t is_undefined)
 {
     char num_val[MAX_LEN + 1];
+    char *num_val_p = num_val;
     int8_t num_len;
     int temp;
     
@@ -41,7 +42,7 @@ int Writer_ValuePrint_print(uint16_t value, uint8_t is_undefined)
     {
         return(write(STDOUT_FILENO, UNDEF_VALUE, LEN_TO_PRINT));
     }
-    num_len = valueprint_ulltoa_hex(value, &num_val);
+    num_len = valueprint_ulltoa_hex(value, &num_val_p);
     temp = write(STDOUT_FILENO, ZEROS, LEN_TO_PRINT - num_len);
     if (temp == -1)
     {
