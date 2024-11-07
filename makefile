@@ -6,13 +6,14 @@ RM		= rm -f
 SRC_DIR					= src
 FILE_HANDLER_SRC_DIR	= FileHandler/src
 ELF_PARSER_SRC_DIR		= ElfParser/src
+WRITER_SRC_DIR			= Writer/src
 
 NAME = nm.out
 
 
 
-$(NAME): 
-	${CC} ${CCFLAGS} -o ${NAME} ${SRC_DIR}/*  ${FILE_HANDLER_SRC_DIR}/* ${ELF_PARSER_SRC_DIR}/* 
+$(NAME):
+	${CC} ${CCFLAGS} -o ${NAME} ${SRC_DIR}/*  ${FILE_HANDLER_SRC_DIR}/* ${ELF_PARSER_SRC_DIR}/* ${WRITER_SRC_DIR}/*
 
 
 all: fclean ${NAME}
