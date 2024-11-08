@@ -1,8 +1,9 @@
 #include "../inc_pub/writer_flagprint.h"
 #include "../inc_priv/writer_flagprint_priv.h"
 #include <unistd.h>
+#include <stdio.h>
 
-elfparser_secthead_t *g_sect_head_table = NULL;
+const elfparser_secthead_t *g_sect_head_table = NULL;
 
 
 static int flagprint_strNCmp(const char *s1, const char *s2, size_t n)
@@ -32,7 +33,12 @@ static int flagprint_strNCmp(const char *s1, const char *s2, size_t n)
 	return (((int16_t)*s1) -  ((int16_t)*s2));
 }
 
-void Writer_FlagPrint_sectionHeadUnload(void)
+void Writer_FlagPrint_sectionHeadLoad(const elfparser_secthead_t *sect_head)
+{
+    g_sect_head_table = sect_head;
+}
+
+void Writer_FlagPrint_sectionHeadload(void)
 {
     g_sect_head_table = NULL;
 }
@@ -75,6 +81,11 @@ int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, 
         write(STDOUT_FILENO, FLAGPRINT_FLAG_COMMON, FLAGPRINT_FLAG_LEN);
         return (0);
     }
+    else if (symbol_shidx == WRITER_FLAGPRINT_SHIDX_UNDEFINED)
+    {
+        write(STDOUT_FILENO, FLAGPRINT_FLAG_UNDEF, FLAGPRINT_FLAG_LEN);
+        return (0);
+    }
     if (symbol_shidx >= g_sect_head_table->table_len)
     {
         return(-2);
@@ -105,5 +116,6 @@ int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, 
         return (0);
     }
     write(STDOUT_FILENO, FLAGPRINT_FLAG_UNKNOW, FLAGPRINT_FLAG_LEN);
+    write(STDOUT_FILENO, g_sect_head_table->table[symbol_shidx].sh_name, 5);
     return (0);
 }

@@ -1,4 +1,5 @@
 #include "../inc_pub/linkedlist.h"
+#include <stdio.h>
 
 int LinkedList_nodePushBack(dl_list_t** head, writer_line_t* const line, dl_list_t** const node, dl_list_t* const clue)
 {
@@ -32,7 +33,10 @@ int LinkedList_nodePushBack(dl_list_t** head, writer_line_t* const line, dl_list
         curr_node = next_node;
     }
     new_node->prev = curr_node;
-    *head = new_node;
+    if (curr_node== NULL)
+    {
+        *head = new_node;
+    }
     if (node != NULL)
     {
         *node = new_node;
@@ -103,7 +107,7 @@ int LinkedList_nodePopFront(dl_list_t** head, writer_line_t** const line)
     return(0);
 }
 
-int LinkedList_delete(dl_list_t** head, int (*del)(writer_line_t*))
+int LinkedList_delete(dl_list_t** head, void (*del)(void*))
 {
     dl_list_t* curr_node;
     dl_list_t* prev_node;

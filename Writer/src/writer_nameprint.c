@@ -10,9 +10,16 @@
 int Writer_NamePrint_print(char* name)
 {
     unsigned long len = 0;
+    int ret_val;
+
     while(name[len] != '\0')
     {
         len++;
     }
-    return(write(STDOUT_FILENO, name, len));
+    ret_val = write(STDOUT_FILENO, name, len);
+    if (ret_val != -1)
+    {
+        ret_val = 0;
+    }
+    return(ret_val);
 }

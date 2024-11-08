@@ -2,6 +2,12 @@
 #include "../ElfParser/inc_pub/elfparser_secthead.h"
 #include "../ElfParser/inc_pub/elfparser_symtable.h"
 #include "../FileHandler/inc_pub/filehandler.h"
+#include "../LinkedList/inc_pub/linkedlist.h"
+#include "../Writer/inc_pub/writer.h"
+#include "../Writer/inc_pub/writer_flagprint.h"
+
+
+#include <stdlib.h>
 #include <stdio.h>
 
 int main (int argc, char **argv)
@@ -10,6 +16,9 @@ int main (int argc, char **argv)
     elfparser_header_t elf_header = {0};
     elfparser_secthead_t elf_sect_head = {0};
     elfparser_symtable_t elf_symbol_table = {0};
+    dl_list_t *head = NULL;
+    dl_list_t *next_node = NULL;
+    writer_line_t *new_line;
 
     int ret;
 
@@ -128,7 +137,79 @@ int main (int argc, char **argv)
     {
         printf("%d|%s|%lX|%x|%d\n", i, (elf_symbol_table.table)[i].sym_name, (elf_symbol_table.table)[i].sym_value, (elf_symbol_table.table)[i].sym_bind, (elf_symbol_table.table)[i].sym_sect_idx);
     }
+    
+    FileHandler_fileClose(&file);
+    printf("Test1\n");
+    Writer_FlagPrint_sectionHeadLoad(&elf_sect_head);
+    for (int i = 1; i < elf_symbol_table.table_len; i++)
+    {
+        if (((elf_symbol_table.table)[i].sym_type == ELFPARSER_SYMTABLE_TYPE_SECT) || ((elf_symbol_table.table)[i].sym_type == ELFPARSER_SYMTABLE_TYPE_FILE))
+        {
+            continue;
+        }
+        new_line = malloc(sizeof(writer_line_t));
+        if (new_line == NULL)
+        {
+            printf ("Bad malloc \n");
+            return(1);
+        }
+        switch ((elf_symbol_table.table)[i].sym_bind)
+        {
+            case (ELFPARSER_SYMTABLE_BIND_LOCAL):
+                new_line->bind = WRITER_FLAGPRINT_BIND_LOCAL;
+                break;
+            case (ELFPARSER_SYMTABLE_BIND_GLOBAL):
+                new_line->bind = WRITER_FLAGPRINT_BIND_GLOBAL;
+                break;
+            case (ELFPARSER_SYMTABLE_BIND_WEAK):
+                new_line->bind = WRITER_FLAGPRINT_BIND_WEAK;
+                break;
+            case (ELFPARSER_SYMTABLE_BIND_GNU_UNIQUE):
+                new_line->bind = WRITER_FLAGPRINT_BIND_GNU;
+                break;
+            default:
+                printf("Bad binding val\n");
+                return(3);
+                break;
+        }
+        switch ((elf_symbol_table.table)[i].sym_type)
+        {
+            case (ELFPARSER_SYMTABLE_TYPE_NOTYPE):
+                new_line->type = WRITER_FLAGPRINT_TYPE_NOTYPE;
+                break;
+            case (ELFPARSER_SYMTABLE_TYPE_OBJECT):
+                new_line->type = WRITER_FLAGPRINT_TYPE_OBLJECT;
+                break;
+            case (ELFPARSER_SYMTABLE_TYPE_FUNC):
+                new_line->type = WRITER_FLAGPRINT_TYPE_FUNC;
+                break;
+            case (ELFPARSER_SYMTABLE_TYPE_SECT):
+                new_line->type = WRITER_FLAGPRINT_TYPE_TLS;
+                break;
+            case (ELFPARSER_SYMTABLE_TYPE_GNU_IFUNC):
+                new_line->type = WRITER_FLAGPRINT_TYPE_GNU;
+                break;
+            default:
+                printf("Bad type val\n");
+                return(3);
+                break;
+        }
+        new_line->sect_head_idx = (elf_symbol_table.table)[i].sym_sect_idx;
+        new_line->name = (elf_symbol_table.table)[i].sym_name;
+        new_line->value = (elf_symbol_table.table)[i].sym_value;
+        LinkedList_nodePushBack(&head, new_line, &next_node, next_node);
+        Writer_linePrint(new_line);
+    }
+    printf("Test5\n");
+    
+    printf("Test6\n");
+    printf("%p\n", next_node);
+   /* for (dl_list_t *node = next_node; node != NULL; node = node->prev)
+    {
+        Writer_linePrint(new_line);
+    }*/
+    printf("Test7\n");
+    LinkedList_delete(&head, free);
     ElfParser_SymTable_free(&elf_symbol_table);
     ElfParser_SectHead_free(&elf_sect_head);
-    FileHandler_fileClose(&file);
 }

@@ -5,6 +5,8 @@
 #include "../inc_priv/writer_nameprint_priv.h"
 #include <unistd.h>
 
+#include <stdio.h>
+
 
 #define SPACE_STR " "
 #define SPACE_LEN 1
@@ -19,6 +21,10 @@ int Writer_linePrint(const writer_line_t *line)
     if (ret_val == 0)
     {
         ret_val = write(STDOUT_FILENO, SPACE_STR, SPACE_LEN);
+        if (ret_val != -1)
+        {
+            ret_val = 0;
+        }
     }
     if (ret_val == 0)
     {
@@ -27,6 +33,10 @@ int Writer_linePrint(const writer_line_t *line)
     if (ret_val == 0)
     {
         ret_val = write(STDOUT_FILENO, SPACE_STR, SPACE_LEN);
+        if (ret_val != -1)
+        {
+            ret_val = 0;
+        }
     }
     if (ret_val == 0)
     {
@@ -34,9 +44,13 @@ int Writer_linePrint(const writer_line_t *line)
     }  
     if (ret_val == 0)
     {
-        ret_val = write(STDOUT_FILENO, SPACE_STR, SPACE_LEN);
+        ret_val = write(STDOUT_FILENO, NL_STR, NL_LEN);
+        if (ret_val != -1)
+        {
+            ret_val = 0;
+        }
     }
     return (ret_val);
 
-    
+
 }
