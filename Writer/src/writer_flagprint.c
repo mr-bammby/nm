@@ -90,32 +90,41 @@ int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, 
     {
         return(-2);
     }
-    if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_PREFIX_DATA, FLAGPRINT_SH_PREFIX_DATA_LEN) == 0)
+    for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_DATA_ARR_LEN; i++)
     {
-        write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_DATA_LOCAL):(FLAGPRINT_FLAG_DATA_GLOBAL), FLAGPRINT_FLAG_LEN);
-        return (0);
+        if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DATA_ARR[i], SIZE_MAX) == 0)
+        {
+            write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_DATA_LOCAL):(FLAGPRINT_FLAG_DATA_GLOBAL), FLAGPRINT_FLAG_LEN);
+            return (0);
+        }
     }
-    else if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_PREFIX_RODATA, FLAGPRINT_SH_PREFIX_RODATA_LEN) == 0)
+    for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_RODATA_ARR_LEN; i++)
     {
-        write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_RODATA_LOCAL):(FLAGPRINT_FLAG_RODATA_GLOBAL), FLAGPRINT_FLAG_LEN);
-        return (0);
+        if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_RODATA_ARR[i], SIZE_MAX) == 0)
+        {
+            write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_RODATA_LOCAL):(FLAGPRINT_FLAG_RODATA_GLOBAL), FLAGPRINT_FLAG_LEN);
+            return (0);
+        }
     }
-    else if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_CODE, FLAGPRINT_SH_NAME_CODE_LEN) == 0)
+    for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_CODE_ARR_LEN; i++)
     {
-        write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_CODE_LOCAL):(FLAGPRINT_FLAG_CODE_GLOBAL), FLAGPRINT_FLAG_LEN);
-        return (0);
+        if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_CODE_ARR[i], SIZE_MAX) == 0)
+        {
+            write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_CODE_LOCAL):(FLAGPRINT_FLAG_CODE_GLOBAL), FLAGPRINT_FLAG_LEN);
+            return (0);
+        }
     }
-    else if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_BSS, FLAGPRINT_SH_NAME_BSS_LEN) == 0)
+    if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_BSS, SIZE_MAX) == 0)
     {
         write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_BSS_LOCAL):(FLAGPRINT_FLAG_BSS_GLOBAL), FLAGPRINT_FLAG_LEN);
         return (0);
     }
-    else if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DEBUG, FLAGPRINT_SH_NAME_DEBUG_LEN) == 0)
+    else if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DEBUG, SIZE_MAX) == 0)
     {
         write(STDOUT_FILENO, FLAGPRINT_FLAG_DEBUGGING, FLAGPRINT_FLAG_LEN);
         return (0);
     }
     write(STDOUT_FILENO, FLAGPRINT_FLAG_UNKNOW, FLAGPRINT_FLAG_LEN);
-    write(STDOUT_FILENO, g_sect_head_table->table[symbol_shidx].sh_name, 5);
+    write(STDOUT_FILENO, g_sect_head_table->table[symbol_shidx].sh_name, 20);
     return (0);
 }

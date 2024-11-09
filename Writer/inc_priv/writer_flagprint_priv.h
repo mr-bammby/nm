@@ -27,20 +27,19 @@
 
 #define FLAGPRINT_FLAG_LEN 1u
 
-#define FLAGPRINT_SH_PREFIX_DATA ".data"
-#define FLAGPRINT_SH_PREFIX_DATA_LEN 5
+#define FLAGPRINT_SH_NAME_DATA_ARR  ((const char*[]){".data", ".data1", ".dynamic", ".got", ".fini_array", ".init_array"})
+#define FLAGPRINT_SH_NAME_DATA_ARR_LEN 6
 
-#define FLAGPRINT_SH_PREFIX_RODATA ".rodata"
-#define FLAGPRINT_SH_PREFIX_RODATA_LEN 7
 
-#define FLAGPRINT_SH_NAME_CODE ".text"
-#define FLAGPRINT_SH_NAME_CODE_LEN 6 /* +1 for null terminator */
+#define FLAGPRINT_SH_NAME_RODATA_ARR  ((const char*[]){".rodata", ".rodata1", ".note.ABI-tag", ".eh_frame", ".eh_frame_hdr"})
+#define FLAGPRINT_SH_NAME_RODATA_ARR_LEN 5
+
+#define FLAGPRINT_SH_NAME_CODE_ARR  ((const char*[]){".text", ".fini", ".init"})
+#define FLAGPRINT_SH_NAME_CODE_ARR_LEN 3
 
 #define FLAGPRINT_SH_NAME_BSS ".bss"
-#define FLAGPRINT_SH_NAME_BSS_LEN 5 /* +1 for null terminator */
 
 #define FLAGPRINT_SH_NAME_DEBUG ".debug"
-#define FLAGPRINT_SH_NAME_DEBUG_LEN 7 /* +1 for null terminator */
 
 
 int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, writer_flagprint_type_e type);
