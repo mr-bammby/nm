@@ -107,6 +107,37 @@ int LinkedList_nodePopFront(dl_list_t** head, writer_line_t** const line)
     return(0);
 }
 
+int LinkedList_nodePushFront(dl_list_t** head, writer_line_t* const line)
+{
+    dl_list_t* new_node;
+
+    if ((line == NULL)  || (head == NULL))
+    {
+        return(-1);
+    }
+    if (*head != NULL)
+    {
+        if((*head)->prev != NULL)
+        {
+            return(-1);
+        }
+    }
+    new_node = malloc(sizeof(dl_list_t));
+    if (new_node == NULL)
+    {
+        return(-3);
+    }
+    new_node->line = line;
+    new_node->prev = NULL;
+    new_node->next = *head;
+    if (*head != NULL)
+    {
+        (*head)->prev = new_node;
+    }
+    *head = new_node;
+    return(0);
+}
+
 int LinkedList_delete(dl_list_t** head, void (*del)(void*))
 {
     dl_list_t* curr_node;
@@ -129,6 +160,7 @@ int LinkedList_delete(dl_list_t** head, void (*del)(void*))
     while (curr_node != NULL)
     {
         prev_node = curr_node;
+        curr_node = curr_node->next;
         if (del != NULL)
         {
             del(prev_node->line);

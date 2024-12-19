@@ -5,7 +5,6 @@
 
 const elfparser_secthead_t *g_sect_head_table = NULL;
 
-
 static int flagprint_strNCmp(const char *s1, const char *s2, size_t n)
 {
     unsigned int i  = 0;

@@ -17,6 +17,10 @@ int Writer_linePrint(const writer_line_t *line)
 {
     int ret_val;
 
+    if (line == NULL)
+    {
+        return (-1);
+    }
     ret_val = Writer_ValuePrint_print(line->value, (line->sect_head_idx == WRITER_FLAGPRINT_SHIDX_UNDEFINED));
     if (ret_val == 0)
     {
@@ -51,6 +55,5 @@ int Writer_linePrint(const writer_line_t *line)
         }
     }
     return (ret_val);
-
-
 }
+

@@ -9,6 +9,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
+int lineCmp(const writer_line_t *line1, const writer_line_t *line2);
 
 int main (int argc, char **argv)
 {
@@ -17,7 +20,6 @@ int main (int argc, char **argv)
     elfparser_secthead_t elf_sect_head = {0};
     elfparser_symtable_t elf_symbol_table = {0};
     dl_list_t *head = NULL;
-    dl_list_t *next_node = NULL;
     writer_line_t *new_line;
 
     int ret;
@@ -44,12 +46,6 @@ int main (int argc, char **argv)
     {
         printf("Problem parsing, With err: %d\n", ret);
     }
-    printf("MAGIC: 0x%x%c%c%c\n", elf_header.elf_ident.elf_magic_num[0], elf_header.elf_ident.elf_magic_num[1], elf_header.elf_ident.elf_magic_num[2], elf_header.elf_ident.elf_magic_num[3]);
-    printf("CLASS: %d\n", elf_header.elf_ident.elf_class);
-    printf("DATA: %d\n", elf_header.elf_ident.elf_data);
-    printf("VERSION: %d\n", elf_header.elf_ident.elf_version);
-    printf("OSABI: %d\n", elf_header.elf_ident.elf_osabi);
-    printf("OSABI_VER: %d\n", elf_header.elf_ident.elf_abi_version);
     ret = FileHandler_mapGet(&file, ElfParser_Header_sizeGet(&elf_header), 0);
     if (ret)
     {
@@ -60,12 +56,6 @@ int main (int argc, char **argv)
     {
         printf("Problem parsing, With err: %d\n", ret);
     }
-    printf("Entry point %ld\n", elf_header.elf_entry);
-    printf("Start of section headers %ld\n", elf_header.elf_section_header_off);
-    printf("Size of section header entry %d bytes\n", elf_header.elf_section_header_entry_size);
-    printf("Num of section headers %d\n", elf_header.elf_section_header_entry_num);
-    printf("Section header string table index %d\n", elf_header.elf_section_header_name_idx);
-    
     ret = FileHandler_mapGet(&file, (elf_header.elf_section_header_entry_num * elf_header.elf_section_header_entry_size), elf_header.elf_section_header_off);
     if (ret)
     {
@@ -91,20 +81,12 @@ int main (int argc, char **argv)
     {
         printf("Problem section header name resolving, With err: %d\n", ret);
     }
-    printf("---------------------------!--------\n");
-    printf("idx|size|off|name|entry_size\n");
-    for (int i = 0; i < elf_sect_head.table_len; i++)
-    {
-        printf("%d|%lX|%lX|%s|%lX\n", i, (elf_sect_head.table)[i].sh_size, (elf_sect_head.table)[i].sh_offset, (elf_sect_head.table)[i].sh_name, (elf_sect_head.table)[i].sh_entsize);
-    }
     int32_t symtab_sect_index = ElfParser_SectHead_byNameFind(&elf_sect_head, ".symtab", 0);
     if  (symtab_sect_index < 0)
     {
         printf("Problem with reding section index, Withh err: %d\n", symtab_sect_index);
         return(1);
     }
-    printf("Index: %d\n", symtab_sect_index);
-    printf("off: %lx, size: %lx\n", (elf_sect_head.table)[symtab_sect_index].sh_offset, (elf_sect_head.table)[symtab_sect_index].sh_size);
     ret = FileHandler_mapGet(&file, elf_sect_head.table[symtab_sect_index].sh_size, elf_sect_head.table[symtab_sect_index].sh_offset);
     if (ret)
     {
@@ -120,7 +102,6 @@ int main (int argc, char **argv)
     {
         printf("Problem ssymbol table parsing, With err: %d\n", ret);
     }
-    printf("off: %lx, size: %lx\n", (elf_sect_head.table)[elf_symbol_table.string_table_idx].sh_offset, (elf_sect_head.table)[elf_symbol_table.string_table_idx].sh_size);
     ret = FileHandler_mapGet(&file, (elf_sect_head.table)[elf_symbol_table.string_table_idx].sh_size, (elf_sect_head.table)[elf_symbol_table.string_table_idx].sh_offset);
     if (ret)
     {
@@ -131,15 +112,7 @@ int main (int argc, char **argv)
     {
         printf("Problem section header name resolving, With err: %d\n", ret);
     }
-    printf("---------------------------!--------\n");
-    printf("idx|name|value|binding|section_idx\n");
-    for (int i = 0; i < elf_symbol_table.table_len; i++)
-    {
-        printf("%d|%s|%lX|%x|%d\n", i, (elf_symbol_table.table)[i].sym_name, (elf_symbol_table.table)[i].sym_value, (elf_symbol_table.table)[i].sym_bind, (elf_symbol_table.table)[i].sym_sect_idx);
-    }
-    
     FileHandler_fileClose(&file);
-    printf("Test1\n");
     Writer_FlagPrint_sectionHeadLoad(&elf_sect_head);
     for (int i = 1; i < elf_symbol_table.table_len; i++)
     {
@@ -197,19 +170,59 @@ int main (int argc, char **argv)
         new_line->sect_head_idx = (elf_symbol_table.table)[i].sym_sect_idx;
         new_line->name = (elf_symbol_table.table)[i].sym_name;
         new_line->value = (elf_symbol_table.table)[i].sym_value;
-        LinkedList_nodePushBack(&head, new_line, &next_node, next_node);
-        Writer_linePrint(new_line);
+        LinkedList_nodePushFront(&head, new_line);
     }
-    printf("Test5\n");
-    
-    printf("Test6\n");
-    printf("%p\n", next_node);
-   /* for (dl_list_t *node = next_node; node != NULL; node = node->prev)
+    LinkedList_sort(&head, lineCmp);
+    for (dl_list_t *node = head; node != NULL; node = node->next)
     {
-        Writer_linePrint(new_line);
-    }*/
-    printf("Test7\n");
+        Writer_linePrint(node->line);
+    }
     LinkedList_delete(&head, free);
     ElfParser_SymTable_free(&elf_symbol_table);
     ElfParser_SectHead_free(&elf_sect_head);
+}
+
+
+int lineCmp(const writer_line_t *line1, const writer_line_t *line2)
+{
+    size_t name1_cnt = 0;
+    size_t name2_cnt = 0;
+    char char1, char2;
+    
+    while (line1->name[name1_cnt] != '\0')
+    {
+        if (line1->name[name1_cnt] == '_')
+        {
+            name1_cnt++;
+            continue;
+        }
+        else if ((line1->name[name1_cnt] >= 'a') && (line1->name[name1_cnt] <= 'z'))
+        {
+            char1 = line1->name[name1_cnt] - ('a' - 'A');
+        }
+        else
+        {
+            char1 = line1->name[name1_cnt];
+        }
+        if (line2->name[name2_cnt] == '_')
+        {
+            name2_cnt++;
+            continue;
+        }
+        else if ((line2->name[name2_cnt] >= 'a') && (line2->name[name2_cnt] <= 'z'))
+        {
+            char2 = line2->name[name2_cnt] - ('a' - 'A');
+        }
+        else
+        {
+            char2 = line2->name[name2_cnt];
+        }
+        if (char1 != char2)
+        {
+            break;
+        }
+        name1_cnt++;
+        name2_cnt++;
+    }
+    return(char1 - char2);
 }
