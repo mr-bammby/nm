@@ -11,6 +11,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#define FT_TRUE     1u
+#define FT_FALSE    0u
+
+#define NO_SORT         0u
+#define NORMAL_SORT     1u
+#define REVERSE_SORT    2u
+
 int lineCmp(const writer_line_t *line1, const writer_line_t *line2);
 
 int main (int argc, char **argv)
@@ -22,15 +29,62 @@ int main (int argc, char **argv)
     dl_list_t *head = NULL;
     writer_line_t *new_line;
 
+    unsigned short global_only = FT_FALSE;
+    unsigned short undifined_only = FT_FALSE;
+    unsigned short sort = NORMAL_SORT;
+
     int ret;
 
-    if (argc != 2)
-    {
-        printf("Wrong number of arguments\n");
-        return(1);
+    // Default target file
+    const char *target_file = "a.out";
+
+    // Check if the last argument is a target file or flags
+    if (argc > 1 && argv[argc - 1][0] != '-') {
+        target_file = argv[argc - 1];
+        argc--; // Exclude the target file from flag processing
     }
+
+
+    // Iterate through all arguments (flags)
+    for (int i = 1; i < argc; i++) {
+        if (argv[i][0] == '-' && strlen(argv[i]) > 1) {
+            // Check all characters in the flag (skip the initial '-')
+            for (size_t j = 1; j < strlen(argv[i]); j++) {
+                char flag = argv[i][j];
+                // Call appropriate function for each flag
+                switch (flag) {
+                    case 'a':
+                        Writer_FlagPrint_enableDebug();
+                        break;
+                    case 'g':
+                        global_only = FT_TRUE;
+                        break;
+                    case 'u':
+                        undifined_only = FT_TRUE;
+                        break;
+                    case 'r':
+                        sort = REVERSE_SORT;
+                        break;
+                    case 'p':
+                        sort = NO_SORT;
+                        break;
+                    default:
+                        fprintf(stderr, "Error: Unknown flag: %c\n", flag);
+                        return (EXIT_FAILURE);
+                      
+                }
+            }
+        } else {
+            // If it's not a flag (e.g., additional parameter)
+            fprintf(stderr, "Error: Unknown parameter or argument: %s\n", argv[i]);
+            return (EXIT_FAILURE);
+        }
+    }
+
+    printf("All flags are valid, and the target file '%s' is executable.\n", target_file);
+
     FileHandler_structSetup(&file);
-    if (FileHandler_fileOpen(&file, argv[1]) != 0)
+    if (FileHandler_fileOpen(&file, target_file) != 0)
     {
         printf("Problem with opening file\n");
         return(2);
@@ -145,6 +199,11 @@ int main (int argc, char **argv)
                 return(3);
                 break;
         }
+        if ((global_only == FT_TRUE) && (new_line->bind != WRITER_FLAGPRINT_BIND_GLOBAL))
+        {
+            free(new_line);
+            continue;
+        }
         switch ((elf_symbol_table.table)[i].sym_type)
         {
             case (ELFPARSER_SYMTABLE_TYPE_NOTYPE):
@@ -168,20 +227,44 @@ int main (int argc, char **argv)
                 break;
         }
         new_line->sect_head_idx = (elf_symbol_table.table)[i].sym_sect_idx;
+        if ((undifined_only == FT_TRUE) && (new_line->sect_head_idx != WRITER_FLAGPRINT_SHIDX_UNDEFINED))
+        {
+            free(new_line);
+            continue;
+        }
         new_line->name = (elf_symbol_table.table)[i].sym_name;
         new_line->value = (elf_symbol_table.table)[i].sym_value;
         LinkedList_nodePushFront(&head, new_line);
     }
-    LinkedList_sort(&head, lineCmp);
-    for (dl_list_t *node = head; node != NULL; node = node->next)
+    if (sort != NO_SORT)
     {
-        Writer_linePrint(node->line);
+        LinkedList_sort(&head, lineCmp);
+    }
+    if (sort == NORMAL_SORT)
+    {
+        for (dl_list_t *node = head; node != NULL; node = node->next)
+        {
+            Writer_linePrint(node->line);
+        }
+    }
+    else if (head != NULL)
+    {
+        dl_list_t *node = head;
+        for (; node->next != NULL; node = node->next)
+        {
+            ;
+        }
+        for (; node != NULL; node = node->prev)
+        {
+            Writer_linePrint(node->line);
+        }
+
     }
     LinkedList_delete(&head, free);
     ElfParser_SymTable_free(&elf_symbol_table);
     ElfParser_SectHead_free(&elf_sect_head);
+    return (EXIT_SUCCESS);
 }
-
 
 int lineCmp(const writer_line_t *line1, const writer_line_t *line2)
 {

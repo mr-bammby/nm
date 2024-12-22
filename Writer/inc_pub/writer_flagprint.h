@@ -31,4 +31,7 @@ typedef enum
 void Writer_FlagPrint_sectionHeadLoad(const elfparser_secthead_t *sect_head);
 void Writer_FlagPrint_sectionHeadUnload(void);
 
+void Writer_FlagPrint_enableDebug(void);
+void Writer_FlagPrint_disableDebug(void);
+
 #endif /* _IG_WRITER_FLAGPRINT_ */

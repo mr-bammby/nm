@@ -17,7 +17,7 @@ typedef struct source_file_s
 } source_file_t;
 
 int FileHandler_structSetup(source_file_t *file);
-int FileHandler_fileOpen(source_file_t *file,char * path);
+int FileHandler_fileOpen(source_file_t *file, const char *path);
 int FileHandler_fileClose(source_file_t *file);
 int FileHandler_mapGet(source_file_t *file, size_t length, off_t offset);
 int FileHandler_mapFree(source_file_t *file);

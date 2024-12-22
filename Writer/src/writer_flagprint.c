@@ -3,7 +3,11 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#define NO_PRINT    0u
+#define PRINT       1u
+
 const elfparser_secthead_t *g_sect_head_table = NULL;
+unsigned short debug_print = NO_PRINT;
 
 static int flagprint_strNCmp(const char *s1, const char *s2, size_t n)
 {
@@ -40,6 +44,16 @@ void Writer_FlagPrint_sectionHeadLoad(const elfparser_secthead_t *sect_head)
 void Writer_FlagPrint_sectionHeadload(void)
 {
     g_sect_head_table = NULL;
+}
+
+void Writer_FlagPrint_enableDebug(void)
+{
+    debug_print = PRINT;
+}
+
+void Writer_FlagPrint_disableDebug(void)
+{
+    debug_print = NO_PRINT;
 }
 
 int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, writer_flagprint_type_e type)
@@ -120,7 +134,7 @@ int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, 
     }
     else if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DEBUG, SIZE_MAX) == 0)
     {
-        write(STDOUT_FILENO, FLAGPRINT_FLAG_DEBUGGING, FLAGPRINT_FLAG_LEN);
+            write(STDOUT_FILENO, FLAGPRINT_FLAG_DEBUGGING, FLAGPRINT_FLAG_LEN);
         return (0);
     }
     write(STDOUT_FILENO, FLAGPRINT_FLAG_UNKNOW, FLAGPRINT_FLAG_LEN);

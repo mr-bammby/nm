@@ -55,7 +55,7 @@ int FileHandler_fileClose(source_file_t *file)
     return(ret);
 }
 
-int FileHandler_fileOpen(source_file_t *file, char * path)
+int FileHandler_fileOpen(source_file_t *file, const char * path)
 {
     struct stat sb;
 
