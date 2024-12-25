@@ -1,6 +1,6 @@
 
 CC = gcc
-CCFLAGS = -Wall -Wextra -Werror -g
+CCFLAGS = -Wall -Wextra -Werror
 
 RM		= rm -f
 SRC_DIR					= src

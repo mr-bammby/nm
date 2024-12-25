@@ -5,9 +5,6 @@
 #include "../inc_priv/writer_nameprint_priv.h"
 #include <unistd.h>
 
-#include <stdio.h>
-
-
 #define SPACE_STR " "
 #define SPACE_LEN 1
 #define NL_STR     "\n"

@@ -1,7 +1,6 @@
 #include "../inc_pub/writer_flagprint.h"
 #include "../inc_priv/writer_flagprint_priv.h"
 #include <unistd.h>
-#include <stdio.h>
 
 #define NO_PRINT    0u
 #define PRINT       1u

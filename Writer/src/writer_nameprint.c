@@ -1,7 +1,6 @@
 #include "../inc_priv/writer_valueprint_priv.h"
 #include <unistd.h>
 
-
 #define MAX_LEN 16
 #define LEN_TO_PRINT MAX_LEN
 #define UNDEF_VALUE "                "

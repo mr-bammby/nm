@@ -24,7 +24,6 @@
 #define FLAGPRINT_FLAG_WEAK_UNDEF           "w"
 #define FLAGPRINT_FLAG_UNKNOW               "?" /* default */
 
-
 #define FLAGPRINT_FLAG_LEN 1u
 
 #define FLAGPRINT_SH_NAME_DATA_ARR  ((const char*[]){".data", ".data1", ".dynamic", ".got", ".fini_array", ".init_array"})
@@ -40,7 +39,6 @@
 #define FLAGPRINT_SH_NAME_BSS ".bss"
 
 #define FLAGPRINT_SH_NAME_DEBUG ".debug"
-
 
 int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, writer_flagprint_type_e type);
 
