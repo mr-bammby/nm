@@ -71,7 +71,7 @@ int FileHandler_fileOpen(source_file_t *file, const char * path)
     if (fstat(file->fd, &sb) == -1)
     {
         return(-1);
-    }    /* To obtain file size */
+    }
 
     file->size = sb.st_size;
     file->page_size = getpagesize();
