@@ -12,6 +12,12 @@ typedef struct writre_line_s
     uint64_t value;
 } writer_line_t;
 
-int Writer_linePrint(const writer_line_t *line);
+typedef enum 
+{
+    WRITER_VALUEPRINT_32BIT = 0U,
+    WRITER_VALUEPRINT_64BIT = 1U
+} writer_bit_t;
+
+int Writer_linePrint(const writer_line_t *line, writer_bit_t bit_len);
 
 #endif /* _IG_WRITER_H_ */

@@ -126,17 +126,24 @@ int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, 
             return (0);
         }
     }
-    if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_BSS, SIZE_MAX) == 0)
+    for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_BSS_ARR_LEN; i++)
     {
-        write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_BSS_LOCAL):(FLAGPRINT_FLAG_BSS_GLOBAL), FLAGPRINT_FLAG_LEN);
-        return (0);
+        if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_BSS_ARR[i], SIZE_MAX) == 0)
+        {
+            write(STDOUT_FILENO, (bind == WRITER_FLAGPRINT_BIND_LOCAL)?(FLAGPRINT_FLAG_BSS_LOCAL):(FLAGPRINT_FLAG_BSS_GLOBAL), FLAGPRINT_FLAG_LEN);
+            return (0);
+        }
     }
-    else if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DEBUG, SIZE_MAX) == 0)
+    for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_DEBUG_ARR_LEN; i++)
     {
-            write(STDOUT_FILENO, FLAGPRINT_FLAG_DEBUGGING, FLAGPRINT_FLAG_LEN);
-        return (0);
+        if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DEBUG_ARR[i], SIZE_MAX) == 0)
+        {
+            write(STDOUT_FILENO, FLAGPRINT_FLAG_DEBUG, FLAGPRINT_FLAG_LEN);
+            return (0);
+        }
     }
+
     write(STDOUT_FILENO, FLAGPRINT_FLAG_UNKNOW, FLAGPRINT_FLAG_LEN);
-    write(STDOUT_FILENO, g_sect_head_table->table[symbol_shidx].sh_name, 20);
+    /*  write(STDOUT_FILENO, g_sect_head_table->table[symbol_shidx].sh_name, 20); */ //uncomment if you want to display unknown sector names
     return (0);
 }

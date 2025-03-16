@@ -11,7 +11,7 @@
 #define FLAGPRINT_FLAG_DATA_LOCAL           "d"
 #define FLAGPRINT_FLAG_INDIRECT             "I" /* GNU specific symbol type*/
 #define FLAGPRINT_FLAG_GNU_TYPE             "i" /* GNU specific symbol type*/
-#define FLAGPRINT_FLAG_DEBUGGING            "N" /* section name .debug */
+#define FLAGPRINT_FLAG_DEBUG                "N" /* section name .debug */
 #define FLAGPRINT_FLAG_RODATA_GLOBAL        "R" /* section name .rodata and .rodata1 */
 #define FLAGPRINT_FLAG_RODATA_LOCAL         "r"
 #define FLAGPRINT_FLAG_CODE_GLOBAL          "T" /* section name .text */
@@ -26,8 +26,8 @@
 
 #define FLAGPRINT_FLAG_LEN 1u
 
-#define FLAGPRINT_SH_NAME_DATA_ARR  ((const char*[]){".data", ".data1", ".dynamic", ".got", ".fini_array", ".init_array"})
-#define FLAGPRINT_SH_NAME_DATA_ARR_LEN 6
+#define FLAGPRINT_SH_NAME_DATA_ARR  ((const char*[]){".data", ".data1", ".dynamic", ".got", ".fini_array", ".init_array", ".opd"})
+#define FLAGPRINT_SH_NAME_DATA_ARR_LEN 7
 
 
 #define FLAGPRINT_SH_NAME_RODATA_ARR  ((const char*[]){".rodata", ".rodata1", ".note.ABI-tag", ".eh_frame", ".eh_frame_hdr"})
@@ -36,9 +36,12 @@
 #define FLAGPRINT_SH_NAME_CODE_ARR  ((const char*[]){".text", ".fini", ".init"})
 #define FLAGPRINT_SH_NAME_CODE_ARR_LEN 3
 
-#define FLAGPRINT_SH_NAME_BSS ".bss"
+#define FLAGPRINT_SH_NAME_BSS_ARR  ((const char*[]){".bss", ".sbss"})
+#define FLAGPRINT_SH_NAME_BSS_ARR_LEN 2
 
-#define FLAGPRINT_SH_NAME_DEBUG ".debug"
+#define FLAGPRINT_SH_NAME_DEBUG_ARR  ((const char*[]){".debug"})
+#define FLAGPRINT_SH_NAME_DEBUG_ARR_LEN 1
+
 
 int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, writer_flagprint_type_e type);
 

@@ -10,7 +10,7 @@
 #define NL_STR     "\n"
 #define NL_LEN 1
 
-int Writer_linePrint(const writer_line_t *line)
+int Writer_linePrint(const writer_line_t *line, writer_bit_t bit_len)
 {
     int ret_val;
 
@@ -18,7 +18,7 @@ int Writer_linePrint(const writer_line_t *line)
     {
         return (-1);
     }
-    ret_val = Writer_ValuePrint_print(line->value, (line->sect_head_idx == WRITER_FLAGPRINT_SHIDX_UNDEFINED));
+    ret_val = Writer_ValuePrint_print(line->value, (line->sect_head_idx == WRITER_FLAGPRINT_SHIDX_UNDEFINED), bit_len);
     if (ret_val == 0)
     {
         ret_val = write(STDOUT_FILENO, SPACE_STR, SPACE_LEN);

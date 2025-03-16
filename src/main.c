@@ -7,7 +7,6 @@
 #include "../Writer/inc_pub/writer_flagprint.h"
 #include "../inc/error.h"
 
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -19,152 +18,159 @@
 #define NORMAL_SORT     1u
 #define REVERSE_SORT    2u
 
+#define RET_OK 0u
+#define RET_FILE_ERR 1u
+#define RET_PARSE_ERR 2u
+
 int lineCmp(const writer_line_t *line1, const writer_line_t *line2);
 
-int parseFile(const char* file_name, elfparser_symtable_t *elf_symbol_table, elfparser_secthead_t *elf_sect_head)
+unsigned int parseFile(const char* file_name, elfparser_symtable_t *elf_symbol_table, elfparser_secthead_t *elf_sect_head, writer_bit_t *file_bit)
 {
     source_file_t file = {0};
     elfparser_header_t elf_header = {0};
     int32_t symtab_sect_index;
-    int ret = 0;
+    unsigned int ret = RET_OK;
 
     FileHandler_structSetup(&file);
     ret = FileHandler_fileOpen(&file, file_name);
-    if (ret != 0)
+    if (ret != RET_OK)
     {
-        ret = 1;
-        return (ret);
+        return (RET_FILE_ERR);
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = FileHandler_mapGet(&file, 16, 0);
-        if (ret)
+        if (ret != RET_OK)
         {
-            ret = 1;
+            ret = RET_FILE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = ElfParser_Header_identParse(&elf_header, file.map, file.map_len);
         if (ret)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
+        }
+        else
+        {
+            *file_bit = (elf_header.elf_ident.elf_class == ELFPARSER_HEADER_CLASS_32_BIT) ? (WRITER_VALUEPRINT_32BIT) : (WRITER_VALUEPRINT_64BIT); // set address lenght for writer
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = FileHandler_mapGet(&file, ElfParser_Header_sizeGet(&elf_header), 0);
         if (ret)
         {
-            ret = 1;
+            ret = RET_FILE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = ElfParser_Header_parse(&elf_header, file.map, file.map_len);
         if (ret)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = FileHandler_mapGet(&file, (elf_header.elf_section_header_entry_num * elf_header.elf_section_header_entry_size), elf_header.elf_section_header_off);
         if (ret)
         {
-            ret = 1;
+            ret = RET_FILE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = ElfParser_SectHead_structSetup(elf_sect_head, &elf_header);
         if (ret)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = ElfParser_SectHead_parse(elf_sect_head, file.map, file.map_len);
         if (ret)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = FileHandler_mapGet(&file, (elf_sect_head->table)[elf_sect_head->string_table_idx].sh_size, (elf_sect_head->table)[elf_sect_head->string_table_idx].sh_offset);
         if (ret)
         {
-            ret = 1;
+            ret = RET_FILE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = ElfParser_SectHead_nameResolve(elf_sect_head, file.map,  file.map_len);
         if (ret)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         symtab_sect_index = ElfParser_SectHead_byNameFind(elf_sect_head, ".symtab", 0);
         if  (symtab_sect_index < 0)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = FileHandler_mapGet(&file, elf_sect_head->table[symtab_sect_index].sh_size, elf_sect_head->table[symtab_sect_index].sh_offset);
         if (ret)
         {
-            ret = 1;
+            ret = RET_FILE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = ElfParser_SymTable_structSetup(elf_symbol_table, elf_sect_head, symtab_sect_index, &elf_header);
         if (ret)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = ElfParser_SymTable_parse(elf_symbol_table, file.map, file.map_len);
         if (ret)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = FileHandler_mapGet(&file, (elf_sect_head->table)[elf_symbol_table->string_table_idx].sh_size, (elf_sect_head->table)[elf_symbol_table->string_table_idx].sh_offset);
         if (ret)
         {
-            ret = 1;
+            ret = RET_FILE_ERR;
         }
     }
-    if (ret != 0)
+    if (ret == RET_OK)
     {
         ret = ElfParser_SymTable_nameResolve(elf_symbol_table, file.map,  file.map_len);
         if (ret)
         {
-            ret = 2;
+            ret = RET_PARSE_ERR;
         }
     }
     FileHandler_fileClose(&file);
     return (ret);
 }
 
-int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t elf_symbol_table, unsigned short global_only, unsigned short undifined_only)
+unsigned int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t elf_symbol_table, unsigned short global_only, unsigned short undifined_only)
 {
     writer_line_t *new_line;
-
     for (int i = 1; i < elf_symbol_table.table_len; i++)
     {
+
         if (((elf_symbol_table.table)[i].sym_type == ELFPARSER_SYMTABLE_TYPE_SECT) || ((elf_symbol_table.table)[i].sym_type == ELFPARSER_SYMTABLE_TYPE_FILE))
         {
             continue;
@@ -190,7 +196,7 @@ int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t elf_symbol
                 break;
             default:
                 free(new_line);
-                return(1);
+                return(RET_PARSE_ERR);
         }
         if ((global_only == FT_TRUE) && (new_line->bind != WRITER_FLAGPRINT_BIND_GLOBAL))
         {
@@ -216,7 +222,7 @@ int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t elf_symbol
                 break;
             default:
                 free(new_line);
-                return(1);
+                return(RET_PARSE_ERR);
         }
         new_line->sect_head_idx = (elf_symbol_table.table)[i].sym_sect_idx;
         if ((undifined_only == FT_TRUE) && (new_line->sect_head_idx != WRITER_FLAGPRINT_SHIDX_UNDEFINED))
@@ -228,16 +234,16 @@ int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t elf_symbol
         new_line->value = (elf_symbol_table.table)[i].sym_value;
         LinkedList_nodePushFront(head_p, new_line);
     }
-    return (0);
+    return (RET_OK);
 }
 
-void symbol_print(const dl_list_t *head, unsigned short sort)
+void symbol_print(const dl_list_t *head, unsigned short sort , writer_bit_t file_bit)
 {
     if (sort == NORMAL_SORT)
     {
         for (const dl_list_t *node = head; node != NULL; node = node->next)
         {
-            Writer_linePrint(node->line);
+            Writer_linePrint(node->line, file_bit);
         }
     }
     else if (head != NULL)
@@ -249,7 +255,7 @@ void symbol_print(const dl_list_t *head, unsigned short sort)
         }
         for (; node != NULL; node = node->prev)
         {
-            Writer_linePrint(node->line);
+            Writer_linePrint(node->line, file_bit);
         }
     }
 }
@@ -259,6 +265,7 @@ int main (int argc, char **argv)
     elfparser_secthead_t elf_sect_head = {0};
     elfparser_symtable_t elf_symbol_table = {0};
     dl_list_t *head = NULL;
+    writer_bit_t file_bit;
 
     unsigned short global_only = FT_FALSE;
     unsigned short undifined_only = FT_FALSE;
@@ -306,7 +313,6 @@ int main (int argc, char **argv)
             targat_num++;
         }
     }
-
     if (targat_num != 0)
     {
         target_file = malloc(targat_num * sizeof(char *));
@@ -334,10 +340,10 @@ int main (int argc, char **argv)
     }
     else
     {
+        target_file = malloc(targat_num * sizeof(char *));
         if (target_file != NULL)
         {
             targat_num = 1;
-            target_file = malloc(targat_num * sizeof(char *));
             target_file[0] = "a.out";
         }
         else
@@ -347,13 +353,13 @@ int main (int argc, char **argv)
     }
     for (unsigned int i = 0; i < targat_num; i++)
     {        
-        ret = parseFile(target_file[i], &elf_symbol_table, &elf_sect_head);
+        ret = parseFile(target_file[i], &elf_symbol_table, &elf_sect_head, &file_bit);
         out |= ret;
-        if (ret == 1)
+        if (ret == RET_FILE_ERR)
         {
             out |= Err_Print_Errno(target_file[i]);
         }
-        else if (ret == 2)
+        else if (ret == RET_PARSE_ERR)
         {
             out |= Err_Print_BadFormat(target_file[i]);
         }
@@ -364,18 +370,18 @@ int main (int argc, char **argv)
                 write(1, "\n", 1);
                 write(1, target_file[i], strlen(target_file[i]));
                 write(1, ":\n", 2);
-                Writer_FlagPrint_sectionHeadLoad(&elf_sect_head);
             }
+            Writer_FlagPrint_sectionHeadLoad(&elf_sect_head);
             ret = symbol_list_create(&head, elf_symbol_table, global_only, undifined_only);
-            if (ret == 0)
+            if (ret == RET_OK)
             {
                 if (sort != NO_SORT)
                 {
                     LinkedList_sort(&head, lineCmp);
                 }
-                symbol_print(head, sort);
+                symbol_print(head, sort, file_bit);
             }
-            else if (ret == 1)
+            else if (ret == RET_PARSE_ERR)
             {
                 out |= Err_Print_BadFormat(target_file[i]);
             }

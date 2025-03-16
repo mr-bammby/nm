@@ -36,7 +36,6 @@ static void Print_File(int fd, const char* filename)
 {
     write(fd, "'", 1);
     write(fd, filename, ft_strlen(filename));
-    write(fd, "'", 1);
 }
 
 int Err_Print_BadAlloc(void)
@@ -92,6 +91,6 @@ int Err_Print_Errno(const char* file_name)
 {
     Print_App(STDERR_FILENO);
     Print_File(STDERR_FILENO, file_name);
-    perror("");
+    perror("'");
     return (1);
 }
