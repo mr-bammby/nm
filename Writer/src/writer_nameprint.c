@@ -1,24 +1,39 @@
+/**
+ * @file writer_nameprint.c
+ * @brief Symbol name printing function for ft_nm
+ * @author Domen Banfi
+ * @date 2025-03-16
+ * @version 1.0
+ *
+ * This file contains a function for printing symbol names to stdout
+ * in the ft_nm writer module.
+ */
+
 #include "../inc_priv/writer_valueprint_priv.h"
 #include <unistd.h>
 
-#define MAX_LEN 16
-#define LEN_TO_PRINT MAX_LEN
-#define UNDEF_VALUE "                "
-#define ZEROS       "0000000000000000"
-
+/**
+ * @brief Prints a symbol name to stdout
+ * @param[in] name Null-terminated string containing the symbol name
+ * @return int WR_SUCCESS on success, or error code on write failure
+ */
 int Writer_NamePrint_print(char* name)
 {
-    unsigned long len = 0;
-    int ret_val;
+    size_t len = 0;  // Length of the name string
+    int ret_val; // Return value from write
 
-    while(name[len] != '\0')
+    if (name == NULL)
+    {
+        return WR_ERR_NULL_INPUT;  // Invalid input: NULL pointer
+    }
+    while(name[len] != '\0')// Calculate string length
     {
         len++;
-    }
-    ret_val = write(STDOUT_FILENO, name, len);
-    if (ret_val != -1)
+    }  
+    ret_val = write(STDOUT_FILENO, name, len);  // Write name to stdout
+    if (ret_val != (int)len)
     {
-        ret_val = 0;
+        return (ret_val < 0 ? WR_ERR_WRITE_FAIL : WR_ERR_WRITE_PARTIAL);  // Fail or partial write
     }
-    return(ret_val);
+    return WR_SUCCESS;  // Success
 }
