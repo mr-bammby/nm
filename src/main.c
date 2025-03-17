@@ -264,7 +264,7 @@ unsigned int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t e
         new_line = malloc(sizeof(writer_line_t));
         if (new_line == NULL)
         {
-            return(2);  // Memory allocation error
+            return(RET_PARSE_ERR);  // Memory allocation error
         }
 
         // Set symbol binding type
@@ -288,7 +288,7 @@ unsigned int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t e
         }
 
         // Skip non-global symbols if global_only flag is set
-        if ((global_only == FT_TRUE) && (new_line->bind != WRITER_FLAGPRINT_BIND_GLOBAL))
+        if ((global_only == FT_TRUE) && (new_line->bind == WRITER_FLAGPRINT_BIND_LOCAL)) // to be equal to nm v2.42 on linux
         {
             free(new_line);
             continue;
@@ -404,9 +404,6 @@ int main (int argc, char **argv)
             {
                 char flag = argv[i][j];
                 switch (flag) {
-                    case 'a':  // Enable debug output
-                        Writer_FlagPrint_enableDebug();
-                        break;
                     case 'g':  // Show only global symbols
                         global_only = FT_TRUE;
                         break;

@@ -76,12 +76,12 @@ void Writer_FlagPrint_sectionHeadLoad(const elfparser_secthead_t *sect_head);
 void Writer_FlagPrint_sectionHeadUnload(void);
 
 /**
- * @brief Enables debug output for flag printing
+ * @brief Enables printing of debug symbols
  */
 void Writer_FlagPrint_enableDebug(void);
 
 /**
- * @brief Disables debug output for flag printing
+ * @brief Disables printing of debug symbols
  */
 void Writer_FlagPrint_disableDebug(void);
 

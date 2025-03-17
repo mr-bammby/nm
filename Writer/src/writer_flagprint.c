@@ -24,6 +24,8 @@
 #define FLAGPRINT_STRNCMP_EQUAL     0   /**< Strings are equal up to n or null-terminated */
 #define FLAGPRINT_STRNCMP_BOTH_NULL -1  /**< Both input strings are NULL */
 
+#define SECTION_PRINT NO_PRINT
+
 const elfparser_secthead_t *g_sect_head_table = NULL; /* Global pointer to the section header table */
 unsigned short debug_print = NO_PRINT; /* Global flag for enabling/disabling debug output */
 
@@ -177,12 +179,15 @@ int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, 
                 goto print_flag;
             }
         }
-        for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_DEBUG_ARR_LEN; i++)
+        if (debug_print == PRINT)
         {
-            if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DEBUG_ARR[i], SIZE_MAX) == FLAGPRINT_STRNCMP_EQUAL)
+            for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_DEBUG_ARR_LEN; i++)
             {
-                flag_str = FLAGPRINT_FLAG_DEBUG;
-                goto print_flag;
+                if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DEBUG_ARR[i], SIZE_MAX) == FLAGPRINT_STRNCMP_EQUAL)
+                {
+                    flag_str = FLAGPRINT_FLAG_DEBUG;
+                    goto print_flag;
+                }
             }
         }
         flag_str = FLAGPRINT_FLAG_UNKNOW;  // Default to unknown
@@ -194,7 +199,7 @@ print_flag:
     {
         return (ret_val < 0 ? WR_ERR_WRITE_FAIL : WR_ERR_WRITE_PARTIAL);  // Fail or partial write
     }
-    if (debug_print == PRINT && symbol_shidx < g_sect_head_table->table_len)  // Debug print if enabled
+    if (SECTION_PRINT == PRINT && symbol_shidx < g_sect_head_table->table_len)  // Debug print if enabled
     {
         size_t name_len = strlen(g_sect_head_table->table[symbol_shidx].sh_name);
         ret_val = write(STDOUT_FILENO, g_sect_head_table->table[symbol_shidx].sh_name, name_len);
