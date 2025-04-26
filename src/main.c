@@ -539,15 +539,18 @@ int lineCmp(const writer_line_t *line1, const writer_line_t *line2)
 {
     size_t name1_cnt = 0;
     size_t name2_cnt = 0;
-    char char1, char2;
+    char char1, char2 = ' ';
+    size_t lead1_cnt = 0;
+    size_t lead2_cnt = 0;
     
     // Compare symbol names, ignoring underscores and converting lowercase to uppercase
-    while (line1->name[name1_cnt] != '\0')
+    while (char2 != '\0')
     {
         // Skip underscores in first name
         if (line1->name[name1_cnt] == '_')
         {
             name1_cnt++;
+            lead1_cnt++;
             continue;
         }
         // Convert lowercase to uppercase
@@ -564,6 +567,7 @@ int lineCmp(const writer_line_t *line1, const writer_line_t *line2)
         if (line2->name[name2_cnt] == '_')
         {
             name2_cnt++;
+            lead2_cnt++;
             continue;
         }
         // Convert lowercase to uppercase
@@ -584,5 +588,13 @@ int lineCmp(const writer_line_t *line1, const writer_line_t *line2)
         name1_cnt++;
         name2_cnt++;
     }
-    return(char1 - char2);
+    if (char1 == char2) 
+    {
+        return (lead2_cnt - lead1_cnt);
+    }
+    else
+    {
+        return(char1 - char2);
+    }
+
 }
