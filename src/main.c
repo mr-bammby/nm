@@ -36,6 +36,7 @@
 #define RET_OK 0u
 #define RET_FILE_ERR 1u
 #define RET_PARSE_ERR 2u
+#define RET_NO_SYM_ERR 3u
 
 // Forward declaration of line comparison function for sorting
 int lineCmp(const writer_line_t *line1, const writer_line_t *line2);
@@ -54,7 +55,7 @@ unsigned int parseFile(const char* file_name, elfparser_symtable_t *elf_symbol_t
 {
     source_file_t file = {0};
     elfparser_header_t elf_header = {0};
-    int32_t symtab_sect_index;
+    int32_t symtab_sect_index = -1;
     unsigned int ret = RET_OK;
 
     // Initialize file handler structure
@@ -112,7 +113,6 @@ unsigned int parseFile(const char* file_name, elfparser_symtable_t *elf_symbol_t
             ret = RET_PARSE_ERR;
         }
     }
-
     // Map section header table
     if (ret == RET_OK)
     {
@@ -170,10 +170,17 @@ unsigned int parseFile(const char* file_name, elfparser_symtable_t *elf_symbol_t
     // Find symbol table section
     if (ret == RET_OK)
     {
-        symtab_sect_index = ElfParser_SectHead_byNameFind(elf_sect_head, ".symtab", 0);
+        for (int i = 0; i < elf_sect_head->table_len; i++)
+        {
+            if (elf_sect_head->table[i].sh_type == ELFPARSER_SECTHEAD_TYPE_SYMTAB)
+            {
+                symtab_sect_index = i;
+                break;
+            }
+        }
         if (symtab_sect_index < 0)
         {
-            ret = RET_PARSE_ERR;
+            ret = RET_NO_SYM_ERR;
         }
     }
 
@@ -207,6 +214,15 @@ unsigned int parseFile(const char* file_name, elfparser_symtable_t *elf_symbol_t
         if (ret)
         {
             ret = RET_PARSE_ERR;
+        }
+    }
+
+    if (ret == RET_OK)
+    {
+        // Check if symbol table is empty
+        if (elf_symbol_table->table_len == 0)
+        {
+            ret = RET_NO_SYM_ERR;
         }
     }
 
@@ -251,7 +267,7 @@ unsigned int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t e
     writer_line_t *new_line;
     
     // Process each symbol in the table (skip first entry)
-    for (int i = 1; i < elf_symbol_table.table_len; i++)
+    for (uint64_t i = 1; i < elf_symbol_table.table_len; i++)
     {
         // Skip section and file symbols
         if (((elf_symbol_table.table)[i].sym_type == ELFPARSER_SYMTABLE_TYPE_SECT) || 
@@ -283,8 +299,8 @@ unsigned int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t e
                 new_line->bind = WRITER_FLAGPRINT_BIND_GNU;
                 break;
             default:
-                free(new_line);
-                return(RET_PARSE_ERR);
+                new_line->bind = WRITER_FLAGPRINT_BIND_OSSPEC;
+                break;
         }
 
         // Skip non-global symbols if global_only flag is set
@@ -306,15 +322,22 @@ unsigned int symbol_list_create(dl_list_t **head_p, const elfparser_symtable_t e
             case (ELFPARSER_SYMTABLE_TYPE_FUNC):
                 new_line->type = WRITER_FLAGPRINT_TYPE_FUNC;
                 break;
+            case (ELFPARSER_SYMTABLE_TYPE_COMMON):
+                new_line->type = WRITER_FLAGPRINT_TYPE_COMMON;
+                break;
             case (ELFPARSER_SYMTABLE_TYPE_SECT):
+            case (ELFPARSER_SYMTABLE_TYPE_FILE): // Skip section and file symbols since -a flag is not supported
+                free(new_line);
+                continue;
+            case (ELFPARSER_SYMTABLE_TYPE_TLS):
                 new_line->type = WRITER_FLAGPRINT_TYPE_TLS;
                 break;
             case (ELFPARSER_SYMTABLE_TYPE_GNU_IFUNC):
                 new_line->type = WRITER_FLAGPRINT_TYPE_GNU;
                 break;
             default:
-                free(new_line);
-                return(RET_PARSE_ERR);
+                new_line->type = WRITER_FLAGPRINT_TYPE_OSSPEC;
+                break;
         }
 
         // Set section header index
@@ -482,6 +505,10 @@ int main (int argc, char **argv)
         else if (ret == RET_PARSE_ERR)
         {
             out |= Err_Print_BadFormat(target_file[i]);
+        }
+        else if (ret == RET_NO_SYM_ERR)
+        {
+            out |= Err_Print_NoSymType(target_file[i]);
         }
         else
         {
