@@ -23,6 +23,7 @@
 #define NO_PERMISSION_ERR ": Permission denied\n"
 #define IS_DIR_WARN ": is a directory\n"
 #define UNKNOWN_FORMAT ": file format not recognized\n"
+#define NO_SYM ": no symbols\n"
 #define BAD_ALLOC "Malloc failed\n"
 #define BAD_OPTION "invalid option -- "
 
@@ -116,4 +117,12 @@ int Err_Print_Errno(const char* file_name)
     Print_File(STDERR_FILENO, file_name);  // Print quoted filename
     perror("'");                     // Print errno message with quote prefix
     return (1);                      // Return error code
+}
+
+int Err_Print_NoSymType(const char* file_name)
+{
+    Print_App(STDERR_FILENO);                          // Print app name to stderr
+    write(STDERR_FILENO, file_name, ft_strlen(file_name));  // Print filename
+    write(STDERR_FILENO, NO_SYM, ft_strlen(NO_SYM));  // Print format error
+    return (1);                                        // Return error code
 }

@@ -40,4 +40,6 @@ int Err_Print_BadFormat(const char* file_name);
  */
 int Err_Print_Errno(const char* file_name);
 
+int Err_Print_NoSymType(const char* file_name);
+
 #endif /* _IG_ERROR_H_ */
