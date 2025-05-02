@@ -37,19 +37,19 @@ unsigned short debug_print = NO_PRINT; /* Global flag for enabling/disabling deb
  * @return int FLAGPRINT_STRNCMP_EQUAL if strings match, FLAGPRINT_STRNCMP_BOTH_NULL if both NULL,
  *             or difference between characters at first mismatch
  */
-static int flagprint_strNCmp(const char *s1, const char *s2, size_t n)
+static int16_t flagprint_strNCmp(const char *s1, const char *s2, size_t n)
 {
     unsigned int i  = 0;  // Character index
 
     if (!s1 && !s2)
     {
-        return FLAGPRINT_STRNCMP_BOTH_NULL;  // Both NULL, treat as error
+        return FLAGPRINT_STRNCMP_BOTH_NULL;  // Any is NULL, treat as error
     }
     if (s1 == s2)
     {
         return FLAGPRINT_STRNCMP_EQUAL;  // Same pointer, equal
     }
-
+    n--;
     while ((i < n) && (*s1 != '\0'))
     {
         if (*s1 != *s2)
@@ -121,79 +121,55 @@ int Writer_FlagPrint_print(writer_flagprint_bind_e bind, uint16_t symbol_shidx, 
                    (symbol_shidx == WRITER_FLAGPRINT_SHIDX_UNDEFINED ? FLAGPRINT_FLAG_WEAK_OBJECT_UNDEF : FLAGPRINT_FLAG_WEAK_OBJECT) :
                    (symbol_shidx == WRITER_FLAGPRINT_SHIDX_UNDEFINED ? FLAGPRINT_FLAG_WEAK_UNDEF : FLAGPRINT_FLAG_WEAK);
     }
-    else if (bind == WRITER_FLAGPRINT_BIND_GNU)
+    else if ((bind == WRITER_FLAGPRINT_BIND_GNU) || (bind == WRITER_FLAGPRINT_BIND_OSSPEC))
     {
         flag_str = FLAGPRINT_FLAG_GNU_BIND;
     }
-    else if (type == WRITER_FLAGPRINT_TYPE_GNU)
+    else if ((type == WRITER_FLAGPRINT_TYPE_GNU) || (type == WRITER_FLAGPRINT_TYPE_OSSPEC))
     {
         flag_str = FLAGPRINT_FLAG_GNU_TYPE;
     }
     else if (symbol_shidx == WRITER_FLAGPRINT_SHIDX_ABSOLUTE)
     {
-        flag_str = FLAGPRINT_FLAG_ABSOLUTE;
+        flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_ABSOLUTE_LOCAL : FLAGPRINT_FLAG_ABSOLUTE_GLOBAL;
     }
-    else if (symbol_shidx == WRITER_FLAGPRINT_SHIDX_COMMON)
+    else if (symbol_shidx == WRITER_FLAGPRINT_SHIDX_COMMON || (type == WRITER_FLAGPRINT_TYPE_COMMON))
     {
         flag_str = FLAGPRINT_FLAG_COMMON;
     }
-    else if (symbol_shidx == WRITER_FLAGPRINT_SHIDX_UNDEFINED)
+    else if ((symbol_shidx == WRITER_FLAGPRINT_SHIDX_UNDEFINED))
     {
         flag_str = FLAGPRINT_FLAG_UNDEF;
     }
+    else if ((g_sect_head_table->table[symbol_shidx].sh_type) == ELFPARSER_SECTHEAD_TYPE_NOBITS)
+    {
+        flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_BSS_LOCAL : FLAGPRINT_FLAG_BSS_GLOBAL;
+    }
+    else if ((g_sect_head_table->table[symbol_shidx].sh_flags & (ELFPARSER_SECTHEAD_FLAG_EXECINST | ELFPARSER_SECTHEAD_FLAG_ALLOC)) == (ELFPARSER_SECTHEAD_FLAG_EXECINST | ELFPARSER_SECTHEAD_FLAG_ALLOC))
+    {
+        flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_CODE_LOCAL : FLAGPRINT_FLAG_CODE_GLOBAL;
+    }
+    else if ((g_sect_head_table->table[symbol_shidx].sh_flags & (ELFPARSER_SECTHEAD_FLAG_WRITE | ELFPARSER_SECTHEAD_FLAG_ALLOC)) == (ELFPARSER_SECTHEAD_FLAG_WRITE | ELFPARSER_SECTHEAD_FLAG_ALLOC))
+    {
+        flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_DATA_LOCAL : FLAGPRINT_FLAG_DATA_GLOBAL;
+    }
+    else if ((g_sect_head_table->table[symbol_shidx].sh_flags & (ELFPARSER_SECTHEAD_FLAG_ALLOC)) == (ELFPARSER_SECTHEAD_FLAG_ALLOC))
+    {
+        flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_RODATA_LOCAL : FLAGPRINT_FLAG_RODATA_GLOBAL;
+    }
+    else if ((flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_PREFIX_DEBUG, FLAGPRINT_PREFIX_DEBUG_LEN) == FLAGPRINT_STRNCMP_EQUAL) && (g_sect_head_table->table[symbol_shidx].sh_flags & (ELFPARSER_SECTHEAD_FLAG_ALLOC)) == (0u))
+    {
+        flag_str = FLAGPRINT_FLAG_DEBUG_GLOBAL;
+    }
+    else if (bind == WRITER_FLAGPRINT_BIND_LOCAL)
+    {
+        flag_str = FLAGPRINT_FLAG_DEBUG_LOCAL;
+    }
     else
     {
-        if (symbol_shidx >= g_sect_head_table->table_len)
-        {
-            return WR_ERR_WRITE_FAIL;  // Index out of bounds, repurposed as write-related error
-        }
-        for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_DATA_ARR_LEN; i++)
-        {
-            if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DATA_ARR[i], SIZE_MAX) == FLAGPRINT_STRNCMP_EQUAL)
-            {
-                flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_DATA_LOCAL : FLAGPRINT_FLAG_DATA_GLOBAL;
-                goto print_flag;
-            }
-        }
-        for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_RODATA_ARR_LEN; i++)
-        {
-            if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_RODATA_ARR[i], SIZE_MAX) == FLAGPRINT_STRNCMP_EQUAL)
-            {
-                flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_RODATA_LOCAL : FLAGPRINT_FLAG_RODATA_GLOBAL;
-                goto print_flag;
-            }
-        }
-        for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_CODE_ARR_LEN; i++)
-        {
-            if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_CODE_ARR[i], SIZE_MAX) == FLAGPRINT_STRNCMP_EQUAL)
-            {
-                flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_CODE_LOCAL : FLAGPRINT_FLAG_CODE_GLOBAL;
-                goto print_flag;
-            }
-        }
-        for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_BSS_ARR_LEN; i++)
-        {
-            if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_BSS_ARR[i], SIZE_MAX) == FLAGPRINT_STRNCMP_EQUAL)
-            {
-                flag_str = (bind == WRITER_FLAGPRINT_BIND_LOCAL) ? FLAGPRINT_FLAG_BSS_LOCAL : FLAGPRINT_FLAG_BSS_GLOBAL;
-                goto print_flag;
-            }
-        }
-        if (debug_print == PRINT)
-        {
-            for (uint8_t i = 0; i < FLAGPRINT_SH_NAME_DEBUG_ARR_LEN; i++)
-            {
-                if (flagprint_strNCmp(g_sect_head_table->table[symbol_shidx].sh_name, FLAGPRINT_SH_NAME_DEBUG_ARR[i], SIZE_MAX) == FLAGPRINT_STRNCMP_EQUAL)
-                {
-                    flag_str = FLAGPRINT_FLAG_DEBUG;
-                    goto print_flag;
-                }
-            }
-        }
         flag_str = FLAGPRINT_FLAG_UNKNOW;  // Default to unknown
     }
 
-print_flag:
     ret_val = write(STDOUT_FILENO, flag_str, FLAGPRINT_FLAG_LEN);  // Print selected flag
     if (ret_val != FLAGPRINT_FLAG_LEN)
     {

@@ -15,7 +15,8 @@
 
 #include "../inc_pub/writer_flagprint.h"
 
-#define FLAGPRINT_FLAG_ABSOLUTE             "A" /**< Flag for absolute symbols (reserved section index) */
+#define FLAGPRINT_FLAG_ABSOLUTE_GLOBAL      "A" /**< Flag for absolute symbols global (reserved section index) */
+#define FLAGPRINT_FLAG_ABSOLUTE_LOCAL       "a" /**< Flag for absolute symbols local(reserved section index) */
 #define FLAGPRINT_FLAG_BSS_GLOBAL           "B" /**< Flag for global BSS section symbols (.bss) */
 #define FLAGPRINT_FLAG_BSS_LOCAL            "b" /**< Flag for local BSS section symbols (.bss) */
 #define FLAGPRINT_FLAG_COMMON               "C" /**< Flag for common symbols (reserved section index) */
@@ -23,7 +24,8 @@
 #define FLAGPRINT_FLAG_DATA_LOCAL           "d" /**< Flag for local data section symbols (.data, .data1, etc.) */
 #define FLAGPRINT_FLAG_INDIRECT             "I" /**< Flag for GNU-specific indirect symbols */
 #define FLAGPRINT_FLAG_GNU_TYPE             "i" /**< Flag for GNU-specific symbol type */
-#define FLAGPRINT_FLAG_DEBUG                "N" /**< Flag for debug section symbols (.debug) */
+#define FLAGPRINT_FLAG_DEBUG_GLOBAL         "N" /**< Flag for debug section symbols global  (.debug) */
+#define FLAGPRINT_FLAG_DEBUG_LOCAL          "n" /**< Flag for debug section symbols local  (.debug) */
 #define FLAGPRINT_FLAG_RODATA_GLOBAL        "R" /**< Flag for global read-only data section symbols (.rodata, .rodata1, etc.) */
 #define FLAGPRINT_FLAG_RODATA_LOCAL         "r" /**< Flag for local read-only data section symbols (.rodata, .rodata1, etc.) */
 #define FLAGPRINT_FLAG_CODE_GLOBAL          "T" /**< Flag for global code section symbols (.text) */
@@ -38,20 +40,8 @@
 
 #define FLAGPRINT_FLAG_LEN 1u /**< Length of flag strings (all are 1 character) */
 
-#define FLAGPRINT_SH_NAME_DATA_ARR  ((const char*[]){".data", ".data1", ".dynamic", ".got", ".fini_array", ".init_array", ".opd"}) /**< Array of section names mapped to data section flags */
-#define FLAGPRINT_SH_NAME_DATA_ARR_LEN 7 /**< Length of FLAGPRINT_SH_NAME_DATA_ARR */
-
-#define FLAGPRINT_SH_NAME_RODATA_ARR  ((const char*[]){".rodata", ".rodata1", ".note.ABI-tag", ".eh_frame", ".eh_frame_hdr"}) /**< Array of section names mapped to read-only data section flags */
-#define FLAGPRINT_SH_NAME_RODATA_ARR_LEN 5 /**< Length of FLAGPRINT_SH_NAME_RODATA_ARR */
-
-#define FLAGPRINT_SH_NAME_CODE_ARR  ((const char*[]){".text", ".fini", ".init"}) /**< Array of section names mapped to code section flags */
-#define FLAGPRINT_SH_NAME_CODE_ARR_LEN 3 /**< Length of FLAGPRINT_SH_NAME_CODE_ARR */
-
-#define FLAGPRINT_SH_NAME_BSS_ARR  ((const char*[]){".bss", ".sbss"}) /**< Array of section names mapped to BSS section flags */
-#define FLAGPRINT_SH_NAME_BSS_ARR_LEN 2 /**< Length of FLAGPRINT_SH_NAME_BSS_ARR */
-
-#define FLAGPRINT_SH_NAME_DEBUG_ARR  ((const char*[]){".debug"}) /**< Array of section names mapped to debug section flags */
-#define FLAGPRINT_SH_NAME_DEBUG_ARR_LEN 1 /**< Length of FLAGPRINT_SH_NAME_DEBUG_ARR */
+#define FLAGPRINT_PREFIX_DEBUG ".debug" /**< Prefix for debug section names */
+#define FLAGPRINT_PREFIX_DEBUG_LEN 6u /**< Length of debug section prefix */
 
 /**
  * @brief Prints a symbol flag to stdout

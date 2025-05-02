@@ -39,7 +39,8 @@ typedef enum
     WRITER_FLAGPRINT_BIND_LOCAL  = ELFPARSER_SYMTABLE_BIND_LOCAL,      /**< Local symbol binding (STB_LOCAL) */
     WRITER_FLAGPRINT_BIND_GLOBAL = ELFPARSER_SYMTABLE_BIND_GLOBAL,     /**< Global symbol binding (STB_GLOBAL) */
     WRITER_FLAGPRINT_BIND_WEAK   = ELFPARSER_SYMTABLE_BIND_WEAK,       /**< Weak symbol binding (STB_WEAK) */
-    WRITER_FLAGPRINT_BIND_GNU    = ELFPARSER_SYMTABLE_BIND_GNU_UNIQUE  /**< GNU unique symbol binding (STB_GNU_UNIQUE) */
+    WRITER_FLAGPRINT_BIND_GNU    = ELFPARSER_SYMTABLE_BIND_GNU_UNIQUE,  /**< GNU unique symbol binding (STB_GNU_UNIQUE) */
+    WRITER_FLAGPRINT_BIND_OSSPEC = 0xff  /**< GNU unique symbol binding (STB_GNU_UNIQUE) */
 } writer_flagprint_bind_e;
 
 /**
@@ -56,7 +57,8 @@ typedef enum
     WRITER_FLAGPRINT_TYPE_FILE    = ELFPARSER_SYMTABLE_TYPE_FILE,      /**< File name symbol type (STT_FILE) */
     WRITER_FLAGPRINT_TYPE_COMMON  = ELFPARSER_SYMTABLE_TYPE_COMMON,    /**< Common data symbol type (STT_COMMON) */
     WRITER_FLAGPRINT_TYPE_TLS     = ELFPARSER_SYMTABLE_TYPE_TLS,       /**< Thread-local storage symbol type (STT_TLS) */
-    WRITER_FLAGPRINT_TYPE_GNU     = ELFPARSER_SYMTABLE_TYPE_GNU_IFUNC  /**< GNU indirect function symbol type (STT_GNU_IFUNC) */
+    WRITER_FLAGPRINT_TYPE_GNU     = ELFPARSER_SYMTABLE_TYPE_GNU_IFUNC,  /**< GNU indirect function symbol type (STT_GNU_IFUNC) */
+    WRITER_FLAGPRINT_TYPE_OSSPEC  = 0xff, /**< OS-specific symbol type (STT_LOOS) */
 } writer_flagprint_type_e;
 
 /* Special Section Index Values (st_shndx) */
